@@ -12,6 +12,11 @@ services:
       - "5432:5432"
     volumes:
       - ./init-scripts:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   pgweb:
     image: sosedoff/pgweb
@@ -21,4 +26,7 @@ services:
     ports:
       - "8080:8081"
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
+    entrypoint: "/bin/sh"
+    command: "-c 'sleep 4 && /usr/bin/pgweb --bind=0.0.0.0 --listen=8081'"
